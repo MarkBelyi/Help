@@ -1,6 +1,7 @@
 package com.example.tikvamarket.uiLayer
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +12,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -31,7 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -39,7 +44,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import coil.compose.rememberImagePainter
 import com.example.tikvamarket.DataLayer.CartItem
 import com.example.tikvamarket.DataLayer.Product
 import com.example.tikvamarket.PresentationLayer.AppViewModel
@@ -59,7 +63,7 @@ fun MainScreen(viewModel: AppViewModel = viewModel()) {
         topBar = { TopAppBar(navController = navController) },
         bottomBar = { BottomNavigationBar(navController) },
         contentColor = MaterialTheme.colorScheme.onBackground,
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color.LightGray.copy(alpha = 0.6f),
     ) { padding ->
         NavHost(navController, startDestination = "home", modifier = Modifier.padding(padding)) {
             composable("home") { HomeScreen(viewModel) }
@@ -79,9 +83,9 @@ fun TopAppBar(navController: NavController) {
     }
 
     CenterAlignedTopAppBar(
-        title = { Text(text = title, color = MaterialTheme.colorScheme.onPrimary) },
+        title = { Text(text = title, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold) },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = MaterialTheme.colorScheme.background
         )
     )
 }
@@ -122,7 +126,8 @@ fun CartScreen(viewModel: AppViewModel) {
 @Composable
 fun CartItemView(cartItem: CartItem, product: Product, onRemoveFromCart: (Product) -> Unit) {
     Card(
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(8.dp).border(width = 0.5.dp, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primary),
+
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
@@ -155,7 +160,7 @@ fun ProductItem(product: Product, onAddToCart: (Product) -> Unit, onRemoveFromCa
     ) {
         Column {
             Image(
-                painter = rememberImagePainter(data = product.imageUrl),
+                painter = painterResource(id = product.imageRes),
                 contentDescription = null,
                 modifier = Modifier
                     .height(150.dp)

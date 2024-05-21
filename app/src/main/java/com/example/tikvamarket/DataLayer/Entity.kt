@@ -1,5 +1,6 @@
 package com.example.tikvamarket.DataLayer
 
+import androidx.annotation.DrawableRes
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -8,7 +9,7 @@ data class Product(
     @PrimaryKey val id: Int,
     val name: String,
     val price: Double,
-    val imageUrl: String
+    @DrawableRes val imageRes: Int
 )
 
 @Entity(tableName = "cart_items")

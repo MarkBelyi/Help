@@ -34,11 +34,11 @@ class MyApplication : Application() {
     private fun initializeDatabase() {
         CoroutineScope(Dispatchers.IO).launch {
             val initialProducts = listOf(
-                Product(id = 1, name = "Apple", price = 100.0, imageUrl = "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce"),
-                Product(id = 2, name = "Banana", price = 50.0, imageUrl = "https://images.unsplash.com/photo-1574226516831-e1dff420e8e2"),
-                Product(id = 3, name = "Orange", price = 70.0, imageUrl = "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144"),
-                Product(id = 4, name = "Strawberry", price = 120.0, imageUrl = "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2"),
-                Product(id = 5, name = "Watermelon", price = 300.0, imageUrl = "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce")
+                Product(id = 1, name = "Apple", price = 100.0, imageRes = R.drawable.apple),
+                Product(id = 2, name = "Banana", price = 50.0, imageRes = R.drawable.banana),
+                Product(id = 3, name = "Orange", price = 70.0, imageRes = R.drawable.orange),
+                Product(id = 4, name = "Strawberry", price = 120.0, imageRes = R.drawable.strawberry),
+                Product(id = 5, name = "Watermelon", price = 300.0, imageRes = R.drawable.watermelon)
             )
             productRepository.insertAll(initialProducts)
         }
