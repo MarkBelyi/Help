@@ -1,5 +1,7 @@
 package com.example.tikvamarket.PresentationLayer
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tikvamarket.DataLayer.CartItem
@@ -16,19 +18,29 @@ class AppViewModel(
     private val cartRepository: CartRepository
 ) : ViewModel() {
 
-    private val _products = MutableStateFlow<List<Product>>(emptyList())
-    val products: StateFlow<List<Product>> = _products
+    private val _products = MutableLiveData<List<Product>>(emptyList())
+    val products: LiveData<List<Product>> get() = _products
 
-    private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
-    val cartItems: StateFlow<List<CartItem>> = _cartItems
+    private val _cartItems = MutableLiveData<List<CartItem>>(emptyList())
+    val cartItems: LiveData<List<CartItem>> get() = _cartItems
 
     init {
+        loadProducts()
+        loadCartItems()
+    }
+
+    private fun loadProducts() {
         viewModelScope.launch {
             productRepository.getAllProducts().collect { productList ->
-                _products.value = productList
+                _products.postValue(productList)
             }
+        }
+    }
+
+    private fun loadCartItems() {
+        viewModelScope.launch {
             cartRepository.getAllCartItems().collect { cartItemList ->
-                _cartItems.value = cartItemList
+                _cartItems.postValue(cartItemList)
             }
         }
     }
@@ -38,6 +50,7 @@ class AppViewModel(
             val currentCartItem = cartRepository.getCartItem(product.id)
             val newQuantity = currentCartItem?.quantity?.plus(1) ?: 1
             cartRepository.insert(CartItem(product.id, newQuantity))
+            loadCartItems()
         }
     }
 
@@ -51,6 +64,7 @@ class AppViewModel(
                 } else {
                     cartRepository.deleteByProductId(product.id)
                 }
+                loadCartItems()
             }
         }
     }

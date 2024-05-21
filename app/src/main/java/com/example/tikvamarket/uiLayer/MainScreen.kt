@@ -2,11 +2,7 @@ package com.example.tikvamarket.uiLayer
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -16,23 +12,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -58,9 +44,17 @@ fun currentRoute(navController: NavController): String? {
 @Composable
 fun MainScreen(viewModel: AppViewModel = viewModel()) {
     val navController = rememberNavController()
+    val cartItems by viewModel.cartItems.observeAsState(emptyList())
+    val products by viewModel.products.observeAsState(emptyList())
+
+    // Calculate total price
+    val totalPrice = cartItems.sumOf { cartItem ->
+        val product = products.firstOrNull { it.id == cartItem.productId }
+        (product?.price ?: 0.0) * cartItem.quantity
+    }
 
     Scaffold(
-        topBar = { TopAppBar(navController = navController) },
+        topBar = { TopAppBar(navController = navController, totalPrice = totalPrice) },
         bottomBar = { BottomNavigationBar(navController) },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.LightGray.copy(alpha = 0.6f),
@@ -74,7 +68,7 @@ fun MainScreen(viewModel: AppViewModel = viewModel()) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopAppBar(navController: NavController) {
+fun TopAppBar(navController: NavController, totalPrice: Double) {
     val currentRoute = currentRoute(navController)
     val title = when (currentRoute) {
         "home" -> stringResource(id = R.string.home)
@@ -83,7 +77,13 @@ fun TopAppBar(navController: NavController) {
     }
 
     CenterAlignedTopAppBar(
-        title = { Text(text = title, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold) },
+        title = {
+            Column {
+                if (currentRoute == "cart") {
+                    Text(text = stringResource(id = R.string.total_price, totalPrice), color = MaterialTheme.colorScheme.primary)
+                }
+            }
+        },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )
@@ -92,7 +92,8 @@ fun TopAppBar(navController: NavController) {
 
 @Composable
 fun HomeScreen(viewModel: AppViewModel) {
-    val products by viewModel.products.collectAsState()
+    val products by viewModel.products.observeAsState(emptyList())
+
     LazyVerticalGrid(columns = GridCells.Adaptive(150.dp)) {
         items(products) { product ->
             ProductItem(product = product, onAddToCart = { viewModel.addToCart(it) }, onRemoveFromCart = { viewModel.removeFromCart(it) })
@@ -102,47 +103,48 @@ fun HomeScreen(viewModel: AppViewModel) {
 
 @Composable
 fun CartScreen(viewModel: AppViewModel) {
-    val cartItems by viewModel.cartItems.collectAsState()
-    val products by viewModel.products.collectAsState()
+    val cartItems by viewModel.cartItems.observeAsState(emptyList())
+    val products by viewModel.products.observeAsState(emptyList())
 
-    Column {
-        Text(stringResource(id = R.string.cart_title), color = MaterialTheme.colorScheme.onBackground)
-        LazyColumn {
-            items(cartItems) { cartItem ->
-                val product = products.firstOrNull { it.id == cartItem.productId }
-                if (product != null) {
-                    CartItemView(cartItem = cartItem, product = product, onRemoveFromCart = { viewModel.removeFromCart(product) })
+    Column(modifier = Modifier.padding(16.dp)) {
+        if (cartItems.isNotEmpty()) {
+            LazyColumn {
+                items(cartItems) { cartItem ->
+                    val product = products.firstOrNull { it.id == cartItem.productId }
+                    if (product != null) {
+                        CartItemView(cartItem = cartItem, product = product, onRemoveFromCart = { viewModel.removeFromCart(product) })
+                    }
                 }
             }
+        } else {
+            Text(stringResource(id = R.string.cart_empty), color = MaterialTheme.colorScheme.onBackground)
         }
-        val totalPrice = cartItems.sumOf { cartItem ->
-            val product = products.firstOrNull { it.id == cartItem.productId }
-            (product?.price ?: 0.0) * cartItem.quantity
-        }
-        Text(stringResource(id = R.string.total_price, totalPrice), color = MaterialTheme.colorScheme.onBackground)
     }
 }
 
 @Composable
 fun CartItemView(cartItem: CartItem, product: Product, onRemoveFromCart: (Product) -> Unit) {
     Card(
-        modifier = Modifier.padding(8.dp).border(width = 0.5.dp, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primary),
-
+        modifier = Modifier
+            .padding(8.dp)
+            .border(width = 0.5.dp, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primary),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
-        Row {
+        Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, color = MaterialTheme.colorScheme.onSurface)
                 Text("Цена: ${product.price}₸", color = MaterialTheme.colorScheme.onSurface)
                 Text("Количество: ${cartItem.quantity}", color = MaterialTheme.colorScheme.onSurface)
             }
+            Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = { onRemoveFromCart(product) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary
-                )
+                ),
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Text(stringResource(id = R.string.remove), color = MaterialTheme.colorScheme.onSecondary)
             }
@@ -153,37 +155,59 @@ fun CartItemView(cartItem: CartItem, product: Product, onRemoveFromCart: (Produc
 @Composable
 fun ProductItem(product: Product, onAddToCart: (Product) -> Unit, onRemoveFromCart: (Product) -> Unit) {
     Card(
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier
+            .padding(8.dp)
+            .border(width = 1.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
-        )
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Column {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
             Image(
                 painter = painterResource(id = product.imageRes),
                 contentDescription = null,
                 modifier = Modifier
                     .height(150.dp)
                     .fillMaxWidth()
+                    .padding(bottom = 8.dp)
             )
-            Text(product.name, color = MaterialTheme.colorScheme.onSurface)
-            Text("${product.price}₸", color = MaterialTheme.colorScheme.onSurface)
-            Row {
+            Text(
+                product.name,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                "${product.price}₸",
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Button(
                     onClick = { onAddToCart(product) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    )
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text(stringResource(id = R.string.add_to_cart), color = MaterialTheme.colorScheme.onSecondary)
+                    Text(text = "+", color = MaterialTheme.colorScheme.onPrimary)
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = { onRemoveFromCart(product) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondary
-                    )
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text(stringResource(id = R.string.remove_from_cart), color = MaterialTheme.colorScheme.onSecondary)
+                    Text(text = "-", color = MaterialTheme.colorScheme.onSecondary)
                 }
             }
         }
@@ -193,13 +217,26 @@ fun ProductItem(product: Product, onAddToCart: (Product) -> Unit, onRemoveFromCa
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary
+        containerColor = MaterialTheme.colorScheme.background,
+        tonalElevation = 0.dp,
     ) {
+        val currentRoute = currentRoute(navController)
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.Home, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary) },
-            label = { Text(text = stringResource(id = R.string.home), color = MaterialTheme.colorScheme.onPrimary) },
-            selected = currentRoute(navController) == "home",
+            icon = {
+                Icon(
+                    Icons.Filled.Home,
+                    contentDescription = null,
+                    tint = if (currentRoute == "home") MaterialTheme.colorScheme.primary else Color.LightGray,
+                    modifier = Modifier.scale(1.4f)
+                )
+            },
+            label = {
+                Text(
+                    text = stringResource(id = R.string.home),
+                    color = if (currentRoute == "home") MaterialTheme.colorScheme.primary else Color.LightGray
+                )
+            },
+            selected = currentRoute == "home",
             onClick = {
                 navController.navigate("home") {
                     popUpTo(navController.graph.startDestinationId) {
@@ -211,9 +248,21 @@ fun BottomNavigationBar(navController: NavController) {
             }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.ShoppingCart, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary) },
-            label = { Text(stringResource(id = R.string.cart), color = MaterialTheme.colorScheme.onPrimary) },
-            selected = currentRoute(navController) == "cart",
+            icon = {
+                Icon(
+                    Icons.Filled.ShoppingCart,
+                    contentDescription = null,
+                    tint = if (currentRoute == "cart") MaterialTheme.colorScheme.primary else Color.LightGray,
+                    modifier = Modifier.scale(1.4f)
+                )
+            },
+            label = {
+                Text(
+                    text = stringResource(id = R.string.cart),
+                    color = if (currentRoute == "cart") MaterialTheme.colorScheme.primary else Color.LightGray
+                )
+            },
+            selected = currentRoute == "cart",
             onClick = {
                 navController.navigate("cart") {
                     popUpTo(navController.graph.startDestinationId) {

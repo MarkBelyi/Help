@@ -8,4 +8,5 @@
     <string name="remove">Удалить</string>
     <string name="add_to_cart">Добавить в корзину</string>
     <string name="remove_from_cart">Удалить из корзины</string>
+    <string name="cart_empty">Ваша корзина пуста</string>
 </resources>
