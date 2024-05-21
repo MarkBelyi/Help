@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TikvaMarket</string>
+    <string name="home">Home</string>
+    <string name="cart">Cart</string>
+    <string name="cart_title">Cart</string>
+    <string name="total_price">Total Price: %1$.2f₸</string>
+    <string name="remove">Remove</string>
+    <string name="add_to_cart">Add to Cart</string>
+    <string name="remove_from_cart">Remove from Cart</string>
+</resources>

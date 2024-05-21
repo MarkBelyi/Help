@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ТыкваМаркет</string>
+    <string name="home">Главная</string>
+    <string name="cart">Корзина</string>
+    <string name="cart_title">Корзина</string>
+    <string name="total_price">Общая сумма: %1$.2f₸</string>
+    <string name="remove">Удалить</string>
+    <string name="add_to_cart">Добавить в корзину</string>
+    <string name="remove_from_cart">Удалить из корзины</string>
+</resources>
