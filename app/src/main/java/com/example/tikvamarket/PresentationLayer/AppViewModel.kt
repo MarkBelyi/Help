@@ -45,12 +45,12 @@ class AppViewModel(
         }
     }
 
-    fun addToCart(product: Product) {
+    fun addToCart(product: Product, quantity: Int) {
         viewModelScope.launch {
             val currentCartItem = cartRepository.getCartItem(product.id)
-            val newQuantity = currentCartItem?.quantity?.plus(1) ?: 1
+            val newQuantity = (currentCartItem?.quantity ?: 0) + quantity
             cartRepository.insert(CartItem(product.id, newQuantity))
-            loadCartItems()
+            loadCartItems() // Ensure cart items are reloaded
         }
     }
 
@@ -64,7 +64,7 @@ class AppViewModel(
                 } else {
                     cartRepository.deleteByProductId(product.id)
                 }
-                loadCartItems()
+                loadCartItems() // Ensure cart items are reloaded
             }
         }
     }

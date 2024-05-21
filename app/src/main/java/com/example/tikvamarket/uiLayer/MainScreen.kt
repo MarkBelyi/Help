@@ -17,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -55,7 +57,7 @@ fun MainScreen(viewModel: AppViewModel = viewModel()) {
 
     Scaffold(
         topBar = { TopAppBar(navController = navController, totalPrice = totalPrice) },
-        bottomBar = { BottomNavigationBar(navController) },
+        bottomBar = { BottomNavigationBar(navController, cartItemCount = cartItems.sumOf { it.quantity }) },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.LightGray.copy(alpha = 0.6f),
     ) { padding ->
@@ -96,7 +98,11 @@ fun HomeScreen(viewModel: AppViewModel) {
 
     LazyVerticalGrid(columns = GridCells.Adaptive(150.dp)) {
         items(products) { product ->
-            ProductItem(product = product, onAddToCart = { viewModel.addToCart(it) }, onRemoveFromCart = { viewModel.removeFromCart(it) })
+            ProductItem(
+                product = product,
+                onAddToCart = { prod, quantity -> viewModel.addToCart(prod, quantity) },
+                onRemoveFromCart = { viewModel.removeFromCart(it) }
+            )
         }
     }
 }
@@ -127,7 +133,11 @@ fun CartItemView(cartItem: CartItem, product: Product, onRemoveFromCart: (Produc
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .border(width = 0.5.dp, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primary),
+            .border(
+                width = 0.5.dp,
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.primary
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
@@ -153,11 +163,17 @@ fun CartItemView(cartItem: CartItem, product: Product, onRemoveFromCart: (Produc
 }
 
 @Composable
-fun ProductItem(product: Product, onAddToCart: (Product) -> Unit, onRemoveFromCart: (Product) -> Unit) {
+fun ProductItem(product: Product, onAddToCart: (Product, Int) -> Unit, onRemoveFromCart: (Product) -> Unit) {
+    val quantityState = remember { mutableStateOf(1) }
+
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .border(width = 1.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(16.dp)),
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(16.dp)
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -189,17 +205,6 @@ fun ProductItem(product: Product, onAddToCart: (Product) -> Unit, onRemoveFromCa
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = { onAddToCart(product) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = "+", color = MaterialTheme.colorScheme.onPrimary)
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
                     onClick = { onRemoveFromCart(product) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondary
@@ -207,15 +212,41 @@ fun ProductItem(product: Product, onAddToCart: (Product) -> Unit, onRemoveFromCa
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = "-", color = MaterialTheme.colorScheme.onSecondary)
+                    Text(text = "-", color = MaterialTheme.colorScheme.background)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedTextField(
+                    value = quantityState.value.toString(),
+                    onValueChange = { newValue ->
+                        val quantity = newValue.toIntOrNull()
+                        if (quantity != null && quantity > 0) {
+                            quantityState.value = quantity
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Button(
+                    onClick = { onAddToCart(product, quantityState.value) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = "+", color = MaterialTheme.colorScheme.background)
                 }
             }
         }
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomNavigationBar(navController: NavController) {
+fun BottomNavigationBar(navController: NavController, cartItemCount: Int) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.background,
         tonalElevation = 0.dp,
@@ -249,12 +280,20 @@ fun BottomNavigationBar(navController: NavController) {
         )
         NavigationBarItem(
             icon = {
-                Icon(
-                    Icons.Filled.ShoppingCart,
-                    contentDescription = null,
-                    tint = if (currentRoute == "cart") MaterialTheme.colorScheme.primary else Color.LightGray,
-                    modifier = Modifier.scale(1.4f)
-                )
+                BadgedBox(
+                    badge = {
+                        if (cartItemCount > 0) {
+                            Badge { Text(cartItemCount.toString()) }
+                        }
+                    }
+                ) {
+                    Icon(
+                        Icons.Filled.ShoppingCart,
+                        contentDescription = null,
+                        tint = if (currentRoute == "cart") MaterialTheme.colorScheme.primary else Color.LightGray,
+                        modifier = Modifier.scale(1.4f)
+                    )
+                }
             },
             label = {
                 Text(
@@ -275,3 +314,4 @@ fun BottomNavigationBar(navController: NavController) {
         )
     }
 }
+
