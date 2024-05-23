@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
                         (application as MyApplication).userRepository
                     )
                 )
-                AppNavHost(navController = navController, viewModel = viewModel)
+                AppNavHost(navController, viewModel)
             }
         }
     }
