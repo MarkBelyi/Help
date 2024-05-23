@@ -29,3 +29,16 @@ interface CartItemDao {
     @Query("SELECT * FROM cart_items WHERE productId = :productId LIMIT 1")
     suspend fun getCartItem(productId: Int): CartItem?
 }
+
+@Dao
+interface UserDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUser(user: User)
+
+    @Query("SELECT * FROM users WHERE email = :email")
+    suspend fun getUserByEmail(email: String): User?
+
+    @Query("DELETE FROM users")
+    suspend fun deleteAllUsers()
+}

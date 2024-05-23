@@ -5,18 +5,28 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.tikvamarket.DataLayer.AppDatabase
 import com.example.tikvamarket.DataLayer.Product
 import com.example.tikvamarket.DomainLayer.CartRepository
 import com.example.tikvamarket.DomainLayer.CartRepositoryImpl
 import com.example.tikvamarket.DomainLayer.ProductRepository
 import com.example.tikvamarket.DomainLayer.ProductRepositoryImpl
+import com.example.tikvamarket.DomainLayer.UserRepository
+import com.example.tikvamarket.DomainLayer.UserRepositoryImpl
 import com.example.tikvamarket.PresentationLayer.AppViewModel
 import com.example.tikvamarket.ui.theme.TikvaMarketTheme
+import com.example.tikvamarket.uiLayer.LoginPage
 import com.example.tikvamarket.uiLayer.MainScreen
+import com.example.tikvamarket.uiLayer.RegistrationPage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,6 +35,7 @@ class MyApplication : Application() {
     val database by lazy { AppDatabase.getDatabase(this) }
     val productRepository by lazy { ProductRepositoryImpl(database.productDao()) }
     val cartRepository by lazy { CartRepositoryImpl(database.cartItemDao()) }
+    val userRepository by lazy { UserRepositoryImpl(database.userDao()) }
 
     override fun onCreate() {
         super.onCreate()
@@ -51,13 +62,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TikvaMarketTheme {
+                val navController = rememberNavController()
                 val viewModel: AppViewModel = viewModel(
                     factory = AppViewModelFactory(
                         (application as MyApplication).productRepository,
-                        (application as MyApplication).cartRepository
+                        (application as MyApplication).cartRepository,
+                        (application as MyApplication).userRepository
                     )
                 )
-                MainScreen(viewModel)
+                AppNavHost(navController = navController, viewModel = viewModel)
             }
         }
     }
@@ -65,9 +78,24 @@ class MainActivity : ComponentActivity() {
 
 class AppViewModelFactory(
     private val productRepository: ProductRepository,
-    private val cartRepository: CartRepository
+    private val cartRepository: CartRepository,
+    private val userRepository: UserRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AppViewModel(productRepository, cartRepository) as T
+        return AppViewModel(productRepository, cartRepository, userRepository) as T
+    }
+}
+@Composable
+fun AppNavHost(navController: NavHostController = rememberNavController(), viewModel: AppViewModel) {
+    NavHost(navController, startDestination = "login") {
+        composable("login") {
+            LoginPage(viewModel = viewModel, onLoginSuccess = { navController.navigate("main") }, onRegister = { navController.navigate("register") })
+        }
+        composable("main") {
+            MainScreen(viewModel = viewModel)
+        }
+        composable("register") {
+            RegistrationPage(viewModel = viewModel, onRegisterSuccess = { navController.navigate("main") })
+        }
     }
 }
