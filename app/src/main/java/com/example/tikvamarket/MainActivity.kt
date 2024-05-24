@@ -95,7 +95,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController(), viewM
             MainScreen(viewModel = viewModel)
         }
         composable("register") {
-            RegistrationPage(viewModel = viewModel, onRegisterSuccess = { navController.navigate("main") })
+            RegistrationPage(viewModel = viewModel, onRegisterSuccess = { navController.navigate("login") })
         }
     }
 }

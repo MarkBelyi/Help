@@ -14,6 +14,7 @@ import com.example.tikvamarket.DomainLayer.CartRepository
 import com.example.tikvamarket.DomainLayer.ProductRepository
 import com.example.tikvamarket.DomainLayer.UserRepository
 import kotlinx.coroutines.launch
+import java.util.regex.Pattern
 
 class AppViewModel(
     private val productRepository: ProductRepository,
@@ -77,44 +78,46 @@ class AppViewModel(
         }
     }
 
-    fun login(onSuccess: () -> Unit, onFailure: () -> Unit) {
+    fun login(onLoginSuccess: () -> Unit, onRegister: () -> Unit) {
         viewModelScope.launch {
             isLoading = true
+            errorMessage = ""
             try {
-                val user = authenticate(email, password)
-                if (user != null) {
-                    errorMessage = ""
-                    onSuccess()
+                val user = userRepository.getUserByEmail(email)
+                if (user != null && User.checkPassword(password, user.hashedPassword)) {
+                    onLoginSuccess()
                 } else {
                     errorMessage = "Invalid email or password"
-                    onFailure()
                 }
             } catch (e: Exception) {
                 errorMessage = "An error occurred: ${e.message}"
-                onFailure()
             } finally {
                 isLoading = false
             }
         }
     }
 
-    private suspend fun authenticate(email: String, password: String): User? {
-        val user = userRepository.getUserByEmail(email)
-        return if (user != null && User.checkPassword(password, user.hashedPassword)) {
-            user
-        } else {
-            null
-        }
-    }
-
-    fun register(onSuccess: () -> Unit) {
+    fun register(onRegisterSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading = true
+            errorMessage = ""
             try {
-                val user = User.create(email, password)
-                userRepository.insertUser(user)
-                errorMessage = ""
-                onSuccess()
+                if (!isValidEmail(email)) {
+                    errorMessage = "Invalid email format"
+                }
+                else if (!isValidPassword(password)) {
+                    errorMessage = "Password must be at least 8 characters long and contain at least one uppercase letter, one number, and one special character"
+                }
+                else {
+                    val existingUser = userRepository.getUserByEmail(email)
+                    if (existingUser != null) {
+                        errorMessage = "Email already exists"
+                    } else {
+                        val user = User.create(email, password)
+                        userRepository.insertUser(user)
+                        onRegisterSuccess()
+                    }
+                }
             } catch (e: Exception) {
                 errorMessage = "An error occurred: ${e.message}"
             } finally {
@@ -122,4 +125,16 @@ class AppViewModel(
             }
         }
     }
+
+    private fun isValidPassword(password: String): Boolean {
+        val passwordPattern = "^(?=.*[0-9])(?=.*[A-Z]).{8,}$"
+        val passwordMatcher = Regex(passwordPattern)
+        return passwordMatcher.matches(password)
+    }
+
+    private fun isValidEmail(email: String): Boolean {
+        val emailPattern = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)\$")
+        return emailPattern.matcher(email).matches()
+    }
 }
+

@@ -33,7 +33,7 @@ interface CartItemDao {
 @Dao
 interface UserDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertUser(user: User)
 
     @Query("SELECT * FROM users WHERE email = :email")
