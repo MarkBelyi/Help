@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -49,7 +50,6 @@ fun MainScreen(viewModel: AppViewModel = viewModel()) {
     val cartItems by viewModel.cartItems.observeAsState(emptyList())
     val products by viewModel.products.observeAsState(emptyList())
 
-    // Calculate total price
     val totalPrice = cartItems.sumOf { cartItem ->
         val product = products.firstOrNull { it.id == cartItem.productId }
         (product?.price ?: 0.0) * cartItem.quantity
@@ -72,11 +72,6 @@ fun MainScreen(viewModel: AppViewModel = viewModel()) {
 @Composable
 fun TopAppBar(navController: NavController, totalPrice: Double) {
     val currentRoute = currentRoute(navController)
-    val title = when (currentRoute) {
-        "home" -> stringResource(id = R.string.home)
-        "cart" -> stringResource(id = R.string.cart)
-        else -> stringResource(id = R.string.app_name)
-    }
 
     CenterAlignedTopAppBar(
         title = {
@@ -164,7 +159,7 @@ fun CartItemView(cartItem: CartItem, product: Product, onRemoveFromCart: (Produc
 
 @Composable
 fun ProductItem(product: Product, onAddToCart: (Product, Int) -> Unit, onRemoveFromCart: (Product) -> Unit) {
-    val quantityState = remember { mutableStateOf(1) }
+    val quantityState = remember { mutableStateOf("") }
 
     Card(
         modifier = Modifier
@@ -180,7 +175,7 @@ fun ProductItem(product: Product, onAddToCart: (Product, Int) -> Unit, onRemoveF
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Image(
                 painter = painterResource(id = product.imageRes),
@@ -188,60 +183,74 @@ fun ProductItem(product: Product, onAddToCart: (Product, Int) -> Unit, onRemoveF
                 modifier = Modifier
                     .height(150.dp)
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                    )
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 product.name,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier
+                    .padding(bottom = 4.dp, start = 16.dp, end = 16.dp)
             )
             Text(
                 "${product.price}₸",
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier
+                    .padding(bottom = 8.dp, start = 16.dp, end = 16.dp)
             )
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Button(
-                    onClick = { onRemoveFromCart(product) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = "-", color = MaterialTheme.colorScheme.background)
-                }
-                Spacer(modifier = Modifier.width(8.dp))
                 OutlinedTextField(
-                    value = quantityState.value.toString(),
+                    shape = RoundedCornerShape(16.dp),
+                    value = quantityState.value,
                     onValueChange = { newValue ->
-                        val quantity = newValue.toIntOrNull()
-                        if (quantity != null && quantity > 0) {
-                            quantityState.value = quantity
+                        if (newValue.all { it.isDigit() }) {
+                            quantityState.value = newValue
                         }
                     },
+                    placeholder = { Text(text = "1") },
+                    leadingIcon = {
+                        IconButton(
+                            onClick = {
+                                val quantity = (quantityState.value.toIntOrNull() ?: 1)
+                                if (quantity > 1) {
+                                    onRemoveFromCart(product)
+                                }
+                            }
+                        ) {
+                            Text("-")
+                        }
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                val quantity = (quantityState.value.toIntOrNull() ?: 1)
+                                onAddToCart(product, quantity)
+                            }
+                        ) {
+                            Text("+")
+                        }
+                    },
+                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
-                    singleLine = true
+                    singleLine = true,
+                    isError = quantityState.value == "0"
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Button(
-                    onClick = { onAddToCart(product, quantityState.value) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = "+", color = MaterialTheme.colorScheme.background)
-                }
             }
         }
     }
 }
+
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
