@@ -1,23 +1,8 @@
-package com.example.tikvamarket.DataLayer
+package com.example.tikvamarket.DataLayer.Entitys
 
-import androidx.annotation.DrawableRes
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import org.mindrot.jbcrypt.BCrypt
-
-@Entity(tableName = "products")
-data class Product(
-    @PrimaryKey val id: Int,
-    val name: String,
-    val price: Double,
-    @DrawableRes val imageRes: Int
-)
-
-@Entity(tableName = "cart_items")
-data class CartItem(
-    @PrimaryKey val productId: Int,
-    val quantity: Int
-)
 
 @Entity(tableName = "users")
 data class User(

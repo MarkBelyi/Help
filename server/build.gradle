@@ -1,16 +1,15 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    id 'org.jetbrains.kotlin.kapt'
 }
 
 android {
-    namespace 'com.example.tikvamarket'
+    namespace 'com.example.server'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.example.tikvamarket"
-        minSdk 23
+        applicationId "com.example.server"
+        minSdk 24
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -57,7 +56,6 @@ dependencies {
     implementation libs.androidx.ui.graphics
     implementation libs.androidx.ui.tooling.preview
     implementation libs.androidx.material3
-    implementation libs.androidx.lifecycle.livedata.ktx
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
@@ -65,31 +63,16 @@ dependencies {
     androidTestImplementation libs.androidx.ui.test.junit4
     debugImplementation libs.androidx.ui.tooling
     debugImplementation libs.androidx.ui.test.manifest
-    implementation libs.androidx.lifecycle.livedata.ktx
 
-    // Для навигашион
-    implementation libs.androidx.navigation.compose
-
-    // Room
-    implementation libs.androidx.room.runtime
-    kapt libs.androidx.room.compiler.v261
-    implementation libs.androidx.room.ktx
-
-    // Цикл
-    implementation libs.androidx.lifecycle.runtime.ktx
-    implementation libs.androidx.lifecycle.viewmodel.compose
-    implementation libs.androidx.lifecycle.viewmodel.ktx
-    implementation libs.androidx.runtime
-    implementation libs.androidx.runtime.livedata
-    implementation libs.androidx.runtime.rxjava2
-
-    // Картиночки
-    implementation libs.coil.compose
-
-    // Корутины
-    implementation libs.kotlinx.coroutines.android
-
-    //Криптография
-    implementation libs.jbcrypt
-
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.logback.classic)
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.auth.jwt)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.postgresql)
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TikvaMarket</string>
+    <string name="app_name">Market</string>
     <string name="home">Home</string>
     <string name="cart">Cart</string>
     <string name="cart_title">Cart</string>

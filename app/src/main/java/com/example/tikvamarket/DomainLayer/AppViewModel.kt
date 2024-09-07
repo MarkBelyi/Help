@@ -1,4 +1,4 @@
-package com.example.tikvamarket.PresentationLayer
+package com.example.tikvamarket.DomainLayer
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -7,12 +7,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.tikvamarket.DataLayer.CartItem
-import com.example.tikvamarket.DataLayer.Product
-import com.example.tikvamarket.DataLayer.User
-import com.example.tikvamarket.DomainLayer.CartRepository
-import com.example.tikvamarket.DomainLayer.ProductRepository
-import com.example.tikvamarket.DomainLayer.UserRepository
+import com.example.tikvamarket.DataLayer.Entitys.CartItem
+import com.example.tikvamarket.DataLayer.Entitys.Product
+import com.example.tikvamarket.DataLayer.Entitys.User
+import com.example.tikvamarket.DomainLayer.Repository.CartRepository
+import com.example.tikvamarket.DomainLayer.Repository.ProductRepository
+import com.example.tikvamarket.DomainLayer.Repository.UserRepository
 import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 
@@ -78,7 +78,7 @@ class AppViewModel(
         }
     }
 
-    fun login(onLoginSuccess: () -> Unit, onRegister: () -> Unit) {
+    fun login(onLoginSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = ""

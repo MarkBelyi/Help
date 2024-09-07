@@ -1,6 +1,5 @@
-package com.example.tikvamarket.uiLayer
+package com.example.tikvamarket.PresentationLayer.uiLayer
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -16,7 +15,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.tikvamarket.PresentationLayer.AppViewModel
+import com.example.tikvamarket.DomainLayer.AppViewModel
 
 @Composable
 fun LoginPage(viewModel: AppViewModel = viewModel(), onLoginSuccess: () -> Unit, onRegister: () -> Unit) {
@@ -69,7 +68,7 @@ fun LoginPage(viewModel: AppViewModel = viewModel(), onLoginSuccess: () -> Unit,
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = { viewModel.login(onLoginSuccess, onRegister) },
+            onClick = { viewModel.login(onLoginSuccess) },
             enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()

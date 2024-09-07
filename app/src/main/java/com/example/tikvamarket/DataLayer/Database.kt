@@ -4,6 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.tikvamarket.DataLayer.DAO.CartItemDao
+import com.example.tikvamarket.DataLayer.DAO.ProductDao
+import com.example.tikvamarket.DataLayer.DAO.UserDao
+import com.example.tikvamarket.DataLayer.Entitys.CartItem
+import com.example.tikvamarket.DataLayer.Entitys.Product
+import com.example.tikvamarket.DataLayer.Entitys.User
 
 @Database(
     entities = [

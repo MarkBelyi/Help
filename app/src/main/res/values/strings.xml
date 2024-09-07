@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ТыкваМаркет</string>
+    <string name="app_name">Market</string>
     <string name="home">Главная</string>
     <string name="cart">Корзина</string>
     <string name="cart_title">Корзина</string>
